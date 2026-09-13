@@ -44,3 +44,18 @@ export interface Caption {
   keywords: string;
   created_at: string;
 }
+
+export interface Booking {
+  id: string;
+  customer_name: string;
+  whatsapp: string;
+  service_type: string;
+  date: string;
+  time: string;
+  pickup_location: string;
+  destination: string;
+  city: string;
+  notes: string;
+  status: string;
+  created_at: string;
+}

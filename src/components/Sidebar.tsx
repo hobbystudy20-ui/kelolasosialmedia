@@ -1,6 +1,6 @@
 import { LucideIcon } from 'lucide-react';
 
-export type PageKey = 'tim' | 'planner' | 'schedule' | 'caption';
+export type PageKey = 'tim' | 'planner' | 'schedule' | 'caption' | 'booking';
 
 export interface NavItem {
   key: PageKey;

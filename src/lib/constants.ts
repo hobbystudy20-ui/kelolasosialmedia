@@ -63,6 +63,22 @@ export const CAPTION_CATEGORIES = [
 
 export const TEAM_STATUS = ['Aktif', 'Tidak Aktif'] as const;
 
+export const SERVICE_TYPES = [
+  'Pendampingan Pasien di RS',
+  'Pendampingan Non Pasien',
+  'Antar Jemput Motor',
+  'Antar Jemput Mobil',
+  'Jastip Mobil',
+  'Jastip Motor',
+] as const;
+
+export const BOOKING_STATUS = [
+  'Menunggu Konfirmasi',
+  'Dikonfirmasi',
+  'Selesai',
+  'Dibatalkan',
+] as const;
+
 export function getDayName(dateStr: string): string {
   if (!dateStr) return '';
   const date = new Date(dateStr + 'T00:00:00');

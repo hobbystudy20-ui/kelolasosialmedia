@@ -1,17 +1,19 @@
 import { useState } from 'react';
-import { Users, CalendarRange, Clock, FileText } from 'lucide-react';
+import { Users, CalendarRange, Clock, FileText, CalendarPlus } from 'lucide-react';
 import Sidebar, { PageKey, NavItem } from '@/components/Sidebar';
 import BottomNav from '@/components/BottomNav';
 import TimPage from '@/pages/TimPage';
 import PlannerPage from '@/pages/PlannerPage';
 import SchedulePage from '@/pages/SchedulePage';
 import CaptionPage from '@/pages/CaptionPage';
+import BookingPage from '@/pages/BookingPage';
 
 const NAV_ITEMS: NavItem[] = [
   { key: 'tim', label: 'Daftar Tim', icon: Users },
   { key: 'planner', label: 'Content Planner', icon: CalendarRange },
   { key: 'schedule', label: 'Content Schedule', icon: Clock },
   { key: 'caption', label: 'Bank Caption', icon: FileText },
+  { key: 'booking', label: 'Booking', icon: CalendarPlus },
 ];
 
 function App() {
@@ -33,6 +35,7 @@ function App() {
           {active === 'planner' && <PlannerPage />}
           {active === 'schedule' && <SchedulePage />}
           {active === 'caption' && <CaptionPage />}
+          {active === 'booking' && <BookingPage />}
         </main>
       </div>
 
