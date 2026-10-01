@@ -46,9 +46,7 @@ export default function Sidebar({ groups, active, onNavigate }: SidebarProps) {
   return (
     <aside className="hidden md:flex md:w-60 md:flex-col md:fixed md:inset-y-0 border-r border-gray-200 bg-white overflow-y-auto">
       <div className="flex items-center gap-2.5 px-5 h-16 border-b border-gray-200 flex-shrink-0">
-        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#FB5EA8] text-white font-bold text-sm">
-          DC
-        </div>
+        <img src="/cropped_circle_image_(1).webp" alt="Dampingcare" className="h-10 w-10 rounded-full object-cover" />
         <div className="leading-tight">
           <p className="text-sm font-bold text-gray-900">Dampingcare</p>
           <p className="text-xs text-gray-500">Management System</p>
