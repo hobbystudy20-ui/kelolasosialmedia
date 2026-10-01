@@ -29,6 +29,12 @@ interface FormData {
   pic: string;
   status: string;
   notes: string;
+  topic: string;
+  content_pillar: string;
+  caption: string;
+  cta: string;
+  hashtags: string;
+  target_audience: string;
 }
 
 const emptyForm: FormData = {
@@ -36,10 +42,16 @@ const emptyForm: FormData = {
   platform: 'Instagram',
   city: 'Solo',
   theme: '',
-  content_type: 'Foto',
+  content_type: 'Feed',
   pic: '',
   status: 'Ide',
   notes: '',
+  topic: '',
+  content_pillar: '',
+  caption: '',
+  cta: '',
+  hashtags: '',
+  target_audience: '',
 };
 
 export default function PlannerPage() {
@@ -66,6 +78,7 @@ export default function PlannerPage() {
     const { data, error } = await supabase
       .from('content_planner')
       .select('*')
+      .eq('archived', false)
       .order('created_at', { ascending: false });
     if (!error && data) setItems(data as ContentPlannerItem[]);
     setLoading(false);
@@ -107,6 +120,12 @@ export default function PlannerPage() {
       pic: item.pic,
       status: item.status,
       notes: item.notes,
+      topic: item.topic || '',
+      content_pillar: item.content_pillar || '',
+      caption: item.caption || '',
+      cta: item.cta || '',
+      hashtags: item.hashtags || '',
+      target_audience: item.target_audience || '',
     });
     setEditId(item.id);
     setModalOpen(true);
@@ -132,8 +151,8 @@ export default function PlannerPage() {
   }
 
   function handleDelete(item: ContentPlannerItem) {
-    confirm('Yakin ingin menghapus data ini?', async () => {
-      await supabase.from('content_planner').delete().eq('id', item.id);
+    confirm('Yakin ingin mengarsipkan data ini?', async () => {
+      await supabase.from('content_planner').update({ archived: true }).eq('id', item.id);
       fetchItems();
     });
   }
@@ -282,11 +301,62 @@ export default function PlannerPage() {
               <Select value={form.content_type} onChange={(v) => setForm({ ...form, content_type: v })} options={CONTENT_TYPES as readonly string[]} className="w-full" />
             </Field>
           </div>
+          <Field label="Topik">
+            <input
+              value={form.topic}
+              onChange={(e) => setForm({ ...form, topic: e.target.value })}
+              placeholder="Topik konten..."
+              className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-700 focus:border-[#FB5EA8] focus:outline-none focus:ring-1 focus:ring-[#FB5EA8]"
+            />
+          </Field>
           <Field label="Tema Konten">
             <input
               value={form.theme}
               onChange={(e) => setForm({ ...form, theme: e.target.value })}
               placeholder="Tema konten..."
+              className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-700 focus:border-[#FB5EA8] focus:outline-none focus:ring-1 focus:ring-[#FB5EA8]"
+            />
+          </Field>
+          <Field label="Content Pillar">
+            <input
+              value={form.content_pillar}
+              onChange={(e) => setForm({ ...form, content_pillar: e.target.value })}
+              placeholder="Contoh: Edukasi, Promosi..."
+              className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-700 focus:border-[#FB5EA8] focus:outline-none focus:ring-1 focus:ring-[#FB5EA8]"
+            />
+          </Field>
+          <Field label="Caption">
+            <textarea
+              value={form.caption}
+              onChange={(e) => setForm({ ...form, caption: e.target.value })}
+              placeholder="Caption..."
+              rows={3}
+              className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-700 focus:border-[#FB5EA8] focus:outline-none focus:ring-1 focus:ring-[#FB5EA8] resize-none"
+            />
+          </Field>
+          <div className="grid grid-cols-2 gap-4">
+            <Field label="CTA">
+              <input
+                value={form.cta}
+                onChange={(e) => setForm({ ...form, cta: e.target.value })}
+                placeholder="Call to action..."
+                className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-700 focus:border-[#FB5EA8] focus:outline-none focus:ring-1 focus:ring-[#FB5EA8]"
+              />
+            </Field>
+            <Field label="Target Audience">
+              <input
+                value={form.target_audience}
+                onChange={(e) => setForm({ ...form, target_audience: e.target.value })}
+                placeholder="Target audience..."
+                className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-700 focus:border-[#FB5EA8] focus:outline-none focus:ring-1 focus:ring-[#FB5EA8]"
+              />
+            </Field>
+          </div>
+          <Field label="Hashtags">
+            <input
+              value={form.hashtags}
+              onChange={(e) => setForm({ ...form, hashtags: e.target.value })}
+              placeholder="#dampingcare #pendampingan..."
               className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-700 focus:border-[#FB5EA8] focus:outline-none focus:ring-1 focus:ring-[#FB5EA8]"
             />
           </Field>

@@ -19,14 +19,18 @@ interface FormData {
   category: string;
   content: string;
   keywords: string;
+  cta: string;
+  hashtags: string;
 }
 
 const emptyForm: FormData = {
   title: '',
   platform: 'Instagram',
-  category: 'Edukasi',
+  category: 'Promotional',
   content: '',
   keywords: '',
+  cta: '',
+  hashtags: '',
 };
 
 export default function CaptionPage() {
@@ -52,6 +56,7 @@ export default function CaptionPage() {
     const { data, error } = await supabase
       .from('captions')
       .select('*')
+      .eq('archived', false)
       .order('created_at', { ascending: false });
     if (!error && data) setCaptions(data as Caption[]);
     setLoading(false);
@@ -83,6 +88,8 @@ export default function CaptionPage() {
       category: c.category,
       content: c.content,
       keywords: c.keywords,
+      cta: c.cta || '',
+      hashtags: c.hashtags || '',
     });
     setEditId(c.id);
     setModalOpen(true);
@@ -111,8 +118,8 @@ export default function CaptionPage() {
   }
 
   function handleDelete(c: Caption) {
-    confirm('Yakin ingin menghapus data ini?', async () => {
-      await supabase.from('captions').delete().eq('id', c.id);
+    confirm('Yakin ingin mengarsipkan data ini?', async () => {
+      await supabase.from('captions').update({ archived: true }).eq('id', c.id);
       fetchCaptions();
     });
   }
@@ -295,6 +302,22 @@ export default function CaptionPage() {
               value={form.keywords}
               onChange={(e) => setForm({ ...form, keywords: e.target.value })}
               placeholder="Pisahkan dengan koma: edukasi, tips, kesehatan"
+              className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-700 focus:border-[#FB5EA8] focus:outline-none focus:ring-1 focus:ring-[#FB5EA8]"
+            />
+          </Field>
+          <Field label="CTA">
+            <input
+              value={form.cta}
+              onChange={(e) => setForm({ ...form, cta: e.target.value })}
+              placeholder="Call to action..."
+              className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-700 focus:border-[#FB5EA8] focus:outline-none focus:ring-1 focus:ring-[#FB5EA8]"
+            />
+          </Field>
+          <Field label="Hashtags">
+            <input
+              value={form.hashtags}
+              onChange={(e) => setForm({ ...form, hashtags: e.target.value })}
+              placeholder="#dampingcare #pendampingan..."
               className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-700 focus:border-[#FB5EA8] focus:outline-none focus:ring-1 focus:ring-[#FB5EA8]"
             />
           </Field>
