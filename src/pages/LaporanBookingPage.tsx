@@ -29,7 +29,7 @@ export default function LaporanBookingPage() {
   useEffect(() => { fetchBookings(); }, []);
   async function fetchBookings() {
     setLoading(true);
-    const { data } = await supabase.from('bookings').select('*').eq('archived', false);
+    const { data } = await supabase.from('bookings').select('*');
     if (data) setBookings(data as Booking[]);
     setLoading(false);
   }

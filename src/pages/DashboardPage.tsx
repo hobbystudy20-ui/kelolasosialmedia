@@ -24,7 +24,7 @@ export default function DashboardPage() {
   async function fetchAll() {
     setLoading(true);
     const [b, r, e, a] = await Promise.all([
-      supabase.from('bookings').select('*').eq('archived', false),
+      supabase.from('bookings').select('*'),
       supabase.from('revenue').select('*'),
       supabase.from('operational_expenses').select('*'),
       supabase.from('activity_log').select('*').order('created_at', { ascending: false }).limit(10),

@@ -71,8 +71,8 @@ export default function BookingPage() {
     setLoading(true);
     const [b, t, u] = await Promise.all([
       supabase.from('bookings').select('*').order('date', { ascending: true }),
-      supabase.from('teams').select('*').eq('archived', false),
-      supabase.from('users').select('*').eq('archived', false),
+      supabase.from('teams').select('*'),
+      supabase.from('users').select('*'),
     ]);
     if (b.data) setBookings(b.data as Booking[]);
     if (t.data) setTeam(t.data as TeamMember[]);

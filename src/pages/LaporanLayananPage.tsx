@@ -31,7 +31,7 @@ export default function LaporanLayananPage() {
   async function fetchAll() {
     setLoading(true);
     const [b, r, e] = await Promise.all([
-      supabase.from('bookings').select('*').eq('archived', false),
+      supabase.from('bookings').select('*'),
       supabase.from('revenue').select('*'),
       supabase.from('operational_expenses').select('*'),
     ]);
