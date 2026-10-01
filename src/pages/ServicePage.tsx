@@ -33,7 +33,7 @@ export default function ServicePage() {
   useEffect(() => { fetchServices(); }, []);
   async function fetchServices() {
     setLoading(true);
-    const { data } = await supabase.from('services').select('*').eq('archived', false).order('created_at', { ascending: true });
+    const { data } = await supabase.from('services').select('*').order('created_at', { ascending: true });
     if (data) setServices(data as Service[]);
     setLoading(false);
   }
@@ -58,8 +58,8 @@ export default function ServicePage() {
     setSaving(false); setModalOpen(false); fetchServices();
   }
   function handleDelete(s: Service) {
-    confirm(`Yakin ingin mengarsipkan layanan "${s.name}"?`, async () => {
-      await supabase.from('services').update({ archived: true }).eq('id', s.id);
+    confirm(`Yakin ingin menghapus layanan "${s.name}"? Data yang dihapus tidak dapat dikembalikan.`, async () => {
+      await supabase.from('services').delete().eq('id', s.id);
       fetchServices();
     });
   }
@@ -118,7 +118,7 @@ export default function ServicePage() {
           <Field label="Catatan"><Input value={form.notes} onChange={v => setForm({ ...form, notes: v })} placeholder="Catatan" /></Field>
         </div>
       </Modal>
-      <ConfirmDialog open={confirmState.open} message={confirmState.message} onConfirm={() => { confirmState.onConfirm(); closeConfirm(); }} onCancel={closeConfirm} confirmLabel="Ya, Arsipkan" />
+      <ConfirmDialog open={confirmState.open} message={confirmState.message} onConfirm={() => { confirmState.onConfirm(); closeConfirm(); }} onCancel={closeConfirm} confirmLabel="Ya, Hapus" />
     </div>
   );
 }

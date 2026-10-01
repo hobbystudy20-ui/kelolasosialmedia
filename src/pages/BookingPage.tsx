@@ -70,7 +70,7 @@ export default function BookingPage() {
   async function fetchAll() {
     setLoading(true);
     const [b, t, u] = await Promise.all([
-      supabase.from('bookings').select('*').eq('archived', false).order('date', { ascending: true }),
+      supabase.from('bookings').select('*').order('date', { ascending: true }),
       supabase.from('teams').select('*').eq('archived', false),
       supabase.from('users').select('*').eq('archived', false),
     ]);
@@ -145,8 +145,8 @@ export default function BookingPage() {
     setSaving(false); setModalOpen(false); fetchAll();
   }
   function handleDelete(b: Booking) {
-    confirm(`Yakin ingin mengarsipkan booking "${b.customer_name}"?`, async () => {
-      await supabase.from('bookings').update({ archived: true }).eq('id', b.id);
+    confirm(`Yakin ingin menghapus booking "${b.customer_name}"? Data yang dihapus tidak dapat dikembalikan.`, async () => {
+      await supabase.from('bookings').delete().eq('id', b.id);
       fetchAll();
     });
   }
@@ -267,7 +267,7 @@ export default function BookingPage() {
         )}
       </Modal>
 
-      <ConfirmDialog open={confirmState.open} message={confirmState.message} onConfirm={() => { confirmState.onConfirm(); closeConfirm(); }} onCancel={closeConfirm} confirmLabel="Ya, Arsipkan" />
+      <ConfirmDialog open={confirmState.open} message={confirmState.message} onConfirm={() => { confirmState.onConfirm(); closeConfirm(); }} onCancel={closeConfirm} confirmLabel="Ya, Hapus" />
     </div>
   );
 }

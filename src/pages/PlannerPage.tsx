@@ -78,7 +78,6 @@ export default function PlannerPage() {
     const { data, error } = await supabase
       .from('content_planner')
       .select('*')
-      .eq('archived', false)
       .order('created_at', { ascending: false });
     if (!error && data) setItems(data as ContentPlannerItem[]);
     setLoading(false);
@@ -151,8 +150,8 @@ export default function PlannerPage() {
   }
 
   function handleDelete(item: ContentPlannerItem) {
-    confirm('Yakin ingin mengarsipkan data ini?', async () => {
-      await supabase.from('content_planner').update({ archived: true }).eq('id', item.id);
+    confirm('Yakin ingin menghapus data ini? Data yang dihapus tidak dapat dikembalikan.', async () => {
+      await supabase.from('content_planner').delete().eq('id', item.id);
       fetchItems();
     });
   }

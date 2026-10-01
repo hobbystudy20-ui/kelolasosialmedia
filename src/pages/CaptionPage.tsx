@@ -56,7 +56,6 @@ export default function CaptionPage() {
     const { data, error } = await supabase
       .from('captions')
       .select('*')
-      .eq('archived', false)
       .order('created_at', { ascending: false });
     if (!error && data) setCaptions(data as Caption[]);
     setLoading(false);
@@ -118,8 +117,8 @@ export default function CaptionPage() {
   }
 
   function handleDelete(c: Caption) {
-    confirm('Yakin ingin mengarsipkan data ini?', async () => {
-      await supabase.from('captions').update({ archived: true }).eq('id', c.id);
+    confirm('Yakin ingin menghapus caption ini? Data yang dihapus tidak dapat dikembalikan.', async () => {
+      await supabase.from('captions').delete().eq('id', c.id);
       fetchCaptions();
     });
   }

@@ -48,7 +48,7 @@ export default function UserPage() {
 
   async function fetchUsers() {
     setLoading(true);
-    const { data } = await supabase.from('users').select('*').eq('archived', false).order('created_at', { ascending: false });
+    const { data } = await supabase.from('users').select('*').order('created_at', { ascending: false });
     if (data) setUsers(data as User[]);
     setLoading(false);
   }
@@ -76,8 +76,8 @@ export default function UserPage() {
   }
 
   function handleDelete(u: User) {
-    confirm(`Yakin ingin mengarsipkan user "${u.name}"?`, async () => {
-      await supabase.from('users').update({ archived: true }).eq('id', u.id);
+    confirm(`Yakin ingin menghapus user "${u.name}"? Data yang dihapus tidak dapat dikembalikan.`, async () => {
+      await supabase.from('users').delete().eq('id', u.id);
       fetchUsers();
     });
   }
@@ -159,7 +159,7 @@ export default function UserPage() {
         )}
       </Modal>
 
-      <ConfirmDialog open={confirmState.open} message={confirmState.message} onConfirm={() => { confirmState.onConfirm(); closeConfirm(); }} onCancel={closeConfirm} confirmLabel="Ya, Arsipkan" />
+      <ConfirmDialog open={confirmState.open} message={confirmState.message} onConfirm={() => { confirmState.onConfirm(); closeConfirm(); }} onCancel={closeConfirm} confirmLabel="Ya, Hapus" />
     </div>
   );
 }

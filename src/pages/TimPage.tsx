@@ -37,7 +37,7 @@ export default function TimPage() {
   useEffect(() => { fetchMembers(); }, []);
   async function fetchMembers() {
     setLoading(true);
-    const { data } = await supabase.from('teams').select('*').eq('archived', false).order('created_at', { ascending: true });
+    const { data } = await supabase.from('teams').select('*').order('created_at', { ascending: true });
     if (data) setMembers(data as TeamMember[]);
     setLoading(false);
   }
@@ -68,8 +68,8 @@ export default function TimPage() {
     setSaving(false); setModalOpen(false); fetchMembers();
   }
   function handleDelete(m: TeamMember) {
-    confirm(`Yakin ingin mengarsipkan "${m.name}"?`, async () => {
-      await supabase.from('teams').update({ archived: true }).eq('id', m.id);
+    confirm(`Yakin ingin menghapus "${m.name}"? Data yang dihapus tidak dapat dikembalikan.`, async () => {
+      await supabase.from('teams').delete().eq('id', m.id);
       fetchMembers();
     });
   }
@@ -139,7 +139,7 @@ export default function TimPage() {
           <Field label="Status"><Select value={form.status} onChange={v => setForm({ ...form, status: v })} options={TEAM_STATUS as readonly string[]} className="w-full" /></Field>
         </div>
       </Modal>
-      <ConfirmDialog open={confirmState.open} message={confirmState.message} onConfirm={() => { confirmState.onConfirm(); closeConfirm(); }} onCancel={closeConfirm} confirmLabel="Ya, Arsipkan" />
+      <ConfirmDialog open={confirmState.open} message={confirmState.message} onConfirm={() => { confirmState.onConfirm(); closeConfirm(); }} onCancel={closeConfirm} confirmLabel="Ya, Hapus" />
     </div>
   );
 }

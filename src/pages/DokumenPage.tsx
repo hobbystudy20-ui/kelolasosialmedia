@@ -36,7 +36,7 @@ export default function DokumenPage() {
   useEffect(() => { fetchDocs(); }, []);
   async function fetchDocs() {
     setLoading(true);
-    const { data } = await supabase.from('documents').select('*').eq('archived', false).order('created_at', { ascending: false });
+    const { data } = await supabase.from('documents').select('*').order('created_at', { ascending: false });
     if (data) setDocs(data as DocumentItem[]);
     setLoading(false);
   }
@@ -60,8 +60,8 @@ export default function DokumenPage() {
     setSaving(false); setModalOpen(false); fetchDocs();
   }
   function handleDelete(d: DocumentItem) {
-    confirm(`Yakin ingin mengarsipkan "${d.name}"?`, async () => {
-      await supabase.from('documents').update({ archived: true }).eq('id', d.id);
+    confirm(`Yakin ingin menghapus "${d.name}"? Data yang dihapus tidak dapat dikembalikan.`, async () => {
+      await supabase.from('documents').delete().eq('id', d.id);
       fetchDocs();
     });
   }
@@ -123,7 +123,7 @@ export default function DokumenPage() {
           <Field label="Status"><Select value={form.status} onChange={v => setForm({ ...form, status: v })} options={['Aktif', 'Nonaktif'] as readonly string[]} className="w-full" /></Field>
         </div>
       </Modal>
-      <ConfirmDialog open={confirmState.open} message={confirmState.message} onConfirm={() => { confirmState.onConfirm(); closeConfirm(); }} onCancel={closeConfirm} confirmLabel="Ya, Arsipkan" />
+      <ConfirmDialog open={confirmState.open} message={confirmState.message} onConfirm={() => { confirmState.onConfirm(); closeConfirm(); }} onCancel={closeConfirm} confirmLabel="Ya, Hapus" />
     </div>
   );
 }

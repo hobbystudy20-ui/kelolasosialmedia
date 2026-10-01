@@ -67,7 +67,6 @@ export default function SchedulePage() {
     const { data, error } = await supabase
       .from('content_schedule')
       .select('*')
-      .eq('archived', false)
       .order('created_at', { ascending: false });
     if (!error && data) setItems(data as ContentScheduleItem[]);
     setLoading(false);
@@ -145,8 +144,8 @@ export default function SchedulePage() {
   }
 
   function handleDelete(item: ContentScheduleItem) {
-    confirm('Yakin ingin mengarsipkan data ini?', async () => {
-      await supabase.from('content_schedule').update({ archived: true }).eq('id', item.id);
+    confirm('Yakin ingin menghapus data ini? Data yang dihapus tidak dapat dikembalikan.', async () => {
+      await supabase.from('content_schedule').delete().eq('id', item.id);
       fetchItems();
     });
   }
