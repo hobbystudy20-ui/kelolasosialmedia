@@ -1,14 +1,14 @@
 import { useEffect, useState, useMemo } from 'react';
 import { supabase } from '@/lib/supabase';
 import { Booking, Revenue, OperationalExpense } from '@/lib/types';
-import { PeriodKey, BOOKING_STATUS, SERVICE_CATEGORIES, getPeriodRange, formatCurrency, formatDate } from '@/lib/constants';
+import { PeriodKey, BOOKING_STATUS, getPeriodRange, formatCurrency, formatDate } from '@/lib/constants';
 import PageHeader from '@/components/PageHeader';
 import PeriodSelector from '@/components/PeriodSelector';
 import StatCard from '@/components/StatCard';
 import BarChart from '@/components/BarChart';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import EmptyState from '@/components/EmptyState';
-import { CalendarCheck, PlayCircle, Clock, Users, Wallet, TrendingUp, TrendingDown, Activity } from 'lucide-react';
+import { CalendarCheck, PlayCircle, Clock, Users, Wallet, TrendingUp, TrendingDown, Activity, FileCheck, AlertTriangle, CheckCircle2, XCircle } from 'lucide-react';
 
 export default function EvaluasiLayananPage() {
   const [bookings, setBookings] = useState<Booking[]>([]);
@@ -61,6 +61,30 @@ export default function EvaluasiLayananPage() {
     label: s, value: filteredBookings.filter(b => b.status === s).length,
   })), [filteredBookings]);
 
+  const completionRate = stats.total > 0 ? Math.round((stats.completed / stats.total) * 100) : 0;
+  const cancellationRate = stats.total > 0 ? Math.round((stats.cancelled / stats.total) * 100) : 0;
+  const avgRevenuePerBooking = stats.total > 0 ? Math.round(stats.totalRev / stats.total) : 0;
+  const totalDibayar = filteredBookings.reduce((s, b) => s + (b.paid_amount || 0), 0);
+  const totalSisa = filteredBookings.reduce((s, b) => s + (b.remaining_balance || 0), 0);
+  const outstandingCount = filteredBookings.filter(b => b.payment_status !== 'Lunas' && b.status !== 'Dibatalkan').length;
+
+  const servicePerformance = useMemo(() => {
+    const map: Record<string, { total: number; completed: number; cancelled: number; revenue: number }> = {};
+    for (const b of filteredBookings) {
+      const cat = b.service_type || 'Other';
+      if (!map[cat]) map[cat] = { total: 0, completed: 0, cancelled: 0, revenue: 0 };
+      map[cat].total++;
+      if (b.status === 'Selesai') map[cat].completed++;
+      if (b.status === 'Dibatalkan') map[cat].cancelled++;
+      map[cat].revenue += (b.total_amount || 0);
+    }
+    return Object.entries(map).map(([service, d]) => ({
+      service,
+      ...d,
+      completionRate: d.total > 0 ? Math.round((d.completed / d.total) * 100) : 0,
+    })).sort((a, b) => b.total - a.total);
+  }, [filteredBookings]);
+
   if (loading) return <LoadingSpinner />;
 
   return (
@@ -96,27 +120,60 @@ export default function EvaluasiLayananPage() {
           </div>
 
           <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
-            <h3 className="text-sm font-bold text-gray-800 mb-4">Service Breakdown</h3>
+            <h3 className="text-sm font-bold text-gray-800 mb-4 flex items-center gap-2"><FileCheck size={16} className="text-[#FB5EA8]" />Hasil Evaluasi Layanan</h3>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              <div className="rounded-lg bg-green-50 p-4">
+                <div className="flex items-center gap-2 mb-1"><CheckCircle2 size={16} className="text-green-600" /><span className="text-xs font-semibold text-green-700">Tingkat Penyelesaian</span></div>
+                <p className="text-2xl font-bold text-gray-900">{completionRate}%</p>
+                <p className="text-xs text-gray-500 mt-0.5">{stats.completed} dari {stats.total} booking selesai</p>
+              </div>
+              <div className="rounded-lg bg-red-50 p-4">
+                <div className="flex items-center gap-2 mb-1"><XCircle size={16} className="text-red-600" /><span className="text-xs font-semibold text-red-700">Tingkat Pembatalan</span></div>
+                <p className="text-2xl font-bold text-gray-900">{cancellationRate}%</p>
+                <p className="text-xs text-gray-500 mt-0.5">{stats.cancelled} booking dibatalkan</p>
+              </div>
+              <div className="rounded-lg bg-blue-50 p-4">
+                <div className="flex items-center gap-2 mb-1"><TrendingUp size={16} className="text-blue-600" /><span className="text-xs font-semibold text-blue-700">Rata-rata Pendapatan/Booking</span></div>
+                <p className="text-2xl font-bold text-gray-900">{formatCurrency(avgRevenuePerBooking)}</p>
+                <p className="text-xs text-gray-500 mt-0.5">Dari {stats.total} booking</p>
+              </div>
+              <div className="rounded-lg bg-green-50 p-4">
+                <div className="flex items-center gap-2 mb-1"><Wallet size={16} className="text-green-600" /><span className="text-xs font-semibold text-green-700">Total Sudah Dibayar</span></div>
+                <p className="text-2xl font-bold text-gray-900">{formatCurrency(totalDibayar)}</p>
+                <p className="text-xs text-gray-500 mt-0.5">Dari total {formatCurrency(stats.totalRev)}</p>
+              </div>
+              <div className="rounded-lg bg-amber-50 p-4">
+                <div className="flex items-center gap-2 mb-1"><AlertTriangle size={16} className="text-amber-600" /><span className="text-xs font-semibold text-amber-700">Sisa Pembayaran</span></div>
+                <p className="text-2xl font-bold text-gray-900">{formatCurrency(totalSisa)}</p>
+                <p className="text-xs text-gray-500 mt-0.5">{outstandingCount} booking belum lunas</p>
+              </div>
+              <div className="rounded-lg bg-gray-50 p-4">
+                <div className="flex items-center gap-2 mb-1"><Users size={16} className="text-gray-600" /><span className="text-xs font-semibold text-gray-700">User Unik Dilayani</span></div>
+                <p className="text-2xl font-bold text-gray-900">{stats.uniqueUsers}</p>
+                <p className="text-xs text-gray-500 mt-0.5">Dari {stats.total} total booking</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
+            <h3 className="text-sm font-bold text-gray-800 mb-4">Performa per Layanan</h3>
             <div className="overflow-x-auto">
               <table className="w-full min-w-[500px] text-sm">
                 <thead><tr className="border-b border-gray-100 text-left text-xs font-semibold text-gray-500">
-                  <th className="px-4 py-3">Layanan</th><th className="px-4 py-3">Total Booking</th><th className="px-4 py-3">Selesai</th><th className="px-4 py-3">Berlangsung</th><th className="px-4 py-3">Dibatalkan</th>
+                  <th className="px-4 py-3">Layanan</th><th className="px-4 py-3">Total</th><th className="px-4 py-3">Selesai</th><th className="px-4 py-3">Dibatalkan</th><th className="px-4 py-3">% Selesai</th><th className="px-4 py-3">Pendapatan</th>
                 </tr></thead>
                 <tbody>
-                  {SERVICE_CATEGORIES.map(cat => {
-                    const catBookings = filteredBookings.filter(b => b.service_type?.includes(cat) || b.service_type === cat);
-                    if (catBookings.length === 0) return null;
-                    return (
-                      <tr key={cat} className="border-b border-gray-50 last:border-0">
-                        <td className="px-4 py-3 font-medium text-gray-900">{cat}</td>
-                        <td className="px-4 py-3 text-gray-700">{catBookings.length}</td>
-                        <td className="px-4 py-3 text-green-600">{catBookings.filter(b => b.status === 'Selesai').length}</td>
-                        <td className="px-4 py-3 text-amber-600">{catBookings.filter(b => b.status === 'Sedang Berlangsung').length}</td>
-                        <td className="px-4 py-3 text-red-600">{catBookings.filter(b => b.status === 'Dibatalkan').length}</td>
-                      </tr>
-                    );
-                  })}
-                  {filteredBookings.length === 0 && <tr><td colSpan={5} className="px-4 py-8 text-center text-gray-400">Belum ada data</td></tr>}
+                  {servicePerformance.map(s => (
+                    <tr key={s.service} className="border-b border-gray-50 last:border-0">
+                      <td className="px-4 py-3 font-medium text-gray-900">{s.service}</td>
+                      <td className="px-4 py-3 text-gray-700">{s.total}</td>
+                      <td className="px-4 py-3 text-green-600">{s.completed}</td>
+                      <td className="px-4 py-3 text-red-600">{s.cancelled}</td>
+                      <td className="px-4 py-3"><span className={`rounded-md px-2 py-0.5 text-xs font-medium ${s.completionRate >= 80 ? 'bg-green-50 text-green-700' : s.completionRate >= 50 ? 'bg-amber-50 text-amber-700' : 'bg-red-50 text-red-700'}`}>{s.completionRate}%</span></td>
+                      <td className="px-4 py-3 text-gray-700">{formatCurrency(s.revenue)}</td>
+                    </tr>
+                  ))}
+                  {servicePerformance.length === 0 && <tr><td colSpan={6} className="px-4 py-8 text-center text-gray-400">Belum ada data</td></tr>}
                 </tbody>
               </table>
             </div>

@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo } from 'react';
-import { Star, Plus, Search } from 'lucide-react';
+import { Star, Plus, Search, ImageIcon, X, Upload } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { Feedback } from '@/lib/types';
 import { PeriodKey, FEEDBACK_TYPES, getPeriodRange, formatDate, todayISO, generateId } from '@/lib/constants';
@@ -19,11 +19,12 @@ interface FormData {
   feedback_id: string; user_name: string; service: string; team_member_name: string;
   rating: string; what_went_well: string; what_could_improve: string;
   suggestion: string; complaint: string; feedback_type: string; date: string;
+  photo_url: string;
 }
 const emptyForm: FormData = {
   feedback_id: '', user_name: '', service: '', team_member_name: '', rating: '5',
   what_went_well: '', what_could_improve: '', suggestion: '', complaint: '',
-  feedback_type: 'Positif', date: todayISO(),
+  feedback_type: 'Positif', date: todayISO(), photo_url: '',
 };
 
 export default function EvaluasiKepuasanPage() {
@@ -37,6 +38,7 @@ export default function EvaluasiKepuasanPage() {
   const [editId, setEditId] = useState<string | null>(null);
   const [form, setForm] = useState<FormData>(emptyForm);
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const { state: confirmState, confirm, close: closeConfirm } = useConfirm();
 
   useEffect(() => { fetchFeedback(); }, []);
@@ -73,9 +75,21 @@ export default function EvaluasiKepuasanPage() {
 
   function openAdd() { setForm({ ...emptyForm, feedback_id: generateId('FB') }); setEditId(null); setModalOpen(true); }
   function openEdit(f: Feedback) {
-    setForm({ feedback_id: f.feedback_id, user_name: f.user_name, service: f.service, team_member_name: f.team_member_name, rating: String(f.rating), what_went_well: f.what_went_well, what_could_improve: f.what_could_improve, suggestion: f.suggestion, complaint: f.complaint, feedback_type: f.feedback_type, date: f.date });
+    setForm({ feedback_id: f.feedback_id, user_name: f.user_name, service: f.service, team_member_name: f.team_member_name, rating: String(f.rating), what_went_well: f.what_went_well, what_could_improve: f.what_could_improve, suggestion: f.suggestion, complaint: f.complaint, feedback_type: f.feedback_type, date: f.date, photo_url: f.photo_url || '' });
     setEditId(f.id); setModalOpen(true);
   }
+  async function handlePhotoUpload(file: File) {
+    setUploading(true);
+    const ext = file.name.split('.').pop();
+    const fileName = `feedback/${Date.now()}.${ext}`;
+    const { error } = await supabase.storage.from('feedback-photos').upload(fileName, file);
+    if (!error) {
+      const { data: urlData } = supabase.storage.from('feedback-photos').getPublicUrl(fileName);
+      setForm(prev => ({ ...prev, photo_url: urlData.publicUrl }));
+    }
+    setUploading(false);
+  }
+  function removePhoto() { setForm(prev => ({ ...prev, photo_url: '' })); }
   async function handleSave() {
     if (!form.user_name.trim()) return;
     setSaving(true);
@@ -149,7 +163,7 @@ export default function EvaluasiKepuasanPage() {
           <div className="overflow-hidden rounded-xl border border-gray-200 bg-white overflow-x-auto">
             <table className="w-full min-w-[800px] text-sm">
               <thead><tr className="border-b border-gray-100 text-left text-xs font-semibold text-gray-500">
-                <th className="px-4 py-3">ID</th><th className="px-4 py-3">User</th><th className="px-4 py-3">Layanan</th><th className="px-4 py-3">Pendamping</th><th className="px-4 py-3">Rating</th><th className="px-4 py-3">Tipe</th><th className="px-4 py-3">Tanggal</th><th className="px-4 py-3 text-right">Aksi</th>
+                <th className="px-4 py-3">ID</th><th className="px-4 py-3">User</th><th className="px-4 py-3">Layanan</th><th className="px-4 py-3">Pendamping</th><th className="px-4 py-3">Rating</th><th className="px-4 py-3">Tipe</th><th className="px-4 py-3">Tanggal</th><th className="px-4 py-3">Foto</th><th className="px-4 py-3 text-right">Aksi</th>
               </tr></thead>
               <tbody>
                 {filtered.map(f => (
@@ -161,6 +175,7 @@ export default function EvaluasiKepuasanPage() {
                     <td className="px-4 py-3"><span className="inline-flex items-center gap-0.5">{Array.from({ length: 5 }).map((_, i) => <Star key={i} size={12} className={i < f.rating ? 'text-amber-400 fill-amber-400' : 'text-gray-200'} />)}</span></td>
                     <td className="px-4 py-3"><span className={`rounded-md px-2 py-0.5 text-xs font-medium ${f.feedback_type === 'Positif' ? 'bg-green-50 text-green-700' : f.feedback_type === 'Saran' ? 'bg-blue-50 text-blue-700' : 'bg-red-50 text-red-700'}`}>{f.feedback_type}</span></td>
                     <td className="px-4 py-3 text-gray-500 text-xs">{formatDate(f.date)}</td>
+                    <td className="px-4 py-3">{f.photo_url ? <a href={f.photo_url} target="_blank" rel="noopener noreferrer"><img src={f.photo_url} alt="foto" className="h-10 w-10 rounded-lg object-cover" /></a> : <span className="text-gray-300">-</span>}</td>
                     <td className="px-4 py-3"><div className="flex justify-end"><RowActions onEdit={() => openEdit(f)} onDelete={() => handleDelete(f)} /></div></td>
                   </tr>
                 ))}
@@ -191,6 +206,21 @@ export default function EvaluasiKepuasanPage() {
           <Field label="What could be improved?"><textarea value={form.what_could_improve} onChange={e => setForm({ ...form, what_could_improve: e.target.value })} rows={2} placeholder="Hal yang perlu diperbaiki..." className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-700 placeholder:text-gray-400 focus:border-[#FB5EA8] focus:outline-none focus:ring-1 focus:ring-[#FB5EA8]" /></Field>
           <Field label="Saran"><Input value={form.suggestion} onChange={v => setForm({ ...form, suggestion: v })} placeholder="Saran" /></Field>
           <Field label="Komplain"><Input value={form.complaint} onChange={v => setForm({ ...form, complaint: v })} placeholder="Komplain (jika ada)" /></Field>
+          <div>
+            <label className="mb-1.5 block text-sm font-medium text-gray-700">Foto Bukti / Dokumentasi</label>
+            {form.photo_url ? (
+              <div className="relative inline-block">
+                <img src={form.photo_url} alt="foto" className="h-24 w-24 rounded-lg border border-gray-200 object-cover" />
+                <button onClick={removePhoto} className="absolute -top-2 -right-2 rounded-full bg-red-500 p-1 text-white hover:bg-red-600 transition-colors"><X size={12} /></button>
+              </div>
+            ) : (
+              <label className="flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-200 py-6 hover:border-[#FB5EA8] transition-colors">
+                <Upload size={20} className="text-gray-400 mb-1" />
+                <span className="text-xs text-gray-500">{uploading ? 'Mengupload...' : 'Klik untuk upload foto'}</span>
+                <input type="file" accept="image/*" className="hidden" disabled={uploading} onChange={e => { const file = e.target.files?.[0]; if (file) handlePhotoUpload(file); }} />
+              </label>
+            )}
+          </div>
         </div>
       </Modal>
       <ConfirmDialog open={confirmState.open} message={confirmState.message} onConfirm={() => { confirmState.onConfirm(); closeConfirm(); }} onCancel={closeConfirm} />

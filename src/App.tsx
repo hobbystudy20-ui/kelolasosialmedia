@@ -2,7 +2,7 @@ import { useState } from 'react';
 import {
   LayoutDashboard, Users, CalendarPlus, UserCircle, Package, MapPin,
   CalendarRange, Clock, FileText, BarChart3,
-  TrendingUp, TrendingDown, Wallet, FileBarChart,
+  TrendingUp, TrendingDown, Wallet, FileBarChart, PiggyBank,
   Car, PackageCheck, FileStack,
   ClipboardCheck, Star,
   FileSpreadsheet, Share2, ClipboardList,
@@ -23,6 +23,7 @@ import PendapatanPage from '@/pages/PendapatanPage';
 import BiayaOperasionalPage from '@/pages/BiayaOperasionalPage';
 import PembayaranPage from '@/pages/PembayaranPage';
 import LaporanKeuanganPage from '@/pages/LaporanKeuanganPage';
+import KasPage from '@/pages/KasPage';
 import TransportasiPage from '@/pages/TransportasiPage';
 import InventarisPage from '@/pages/InventarisPage';
 import DokumenPage from '@/pages/DokumenPage';
@@ -62,6 +63,7 @@ const NAV_GROUPS: NavGroup[] = [
       { key: 'pendapatan', label: 'Pendapatan', icon: TrendingUp },
       { key: 'biaya-operasional', label: 'Biaya Operasional', icon: TrendingDown },
       { key: 'pembayaran', label: 'Pembayaran', icon: Wallet },
+      { key: 'kas', label: 'Kas Bulanan', icon: PiggyBank },
       { key: 'laporan-keuangan', label: 'Laporan Keuangan', icon: FileBarChart },
     ],
   },
@@ -111,6 +113,7 @@ function App() {
     'biaya-operasional': <BiayaOperasionalPage />,
     'pembayaran': <PembayaranPage />,
     'laporan-keuangan': <LaporanKeuanganPage />,
+    'kas': <KasPage />,
     'transportasi': <TransportasiPage />,
     'inventaris': <InventarisPage />,
     'dokumen': <DokumenPage />,

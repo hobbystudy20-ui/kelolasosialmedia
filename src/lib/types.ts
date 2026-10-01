@@ -270,6 +270,35 @@ export interface Feedback {
   complaint: string;
   feedback_type: string;
   date: string;
+  photo_url: string;
+  created_at: string;
+}
+
+export interface KasBulanan {
+  id: string;
+  kas_id: string;
+  month: string;
+  date: string;
+  type: string;
+  amount: number;
+  description: string;
+  payment_method: string;
+  person: string;
+  notes: string;
+  created_at: string;
+}
+
+export interface TeamSalary {
+  id: string;
+  salary_id: string;
+  team_member_id: string | null;
+  team_member_name: string;
+  month: string;
+  date: string;
+  amount: number;
+  payment_method: string;
+  status: string;
+  notes: string;
   created_at: string;
 }
 

@@ -22,7 +22,8 @@ export type PageKey =
   | 'evaluasi-kepuasan'
   | 'laporan-booking'
   | 'laporan-sosmed'
-  | 'laporan-layanan';
+  | 'laporan-layanan'
+  | 'kas';
 
 export interface NavItem {
   key: PageKey;

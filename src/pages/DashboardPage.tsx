@@ -1,10 +1,10 @@
 import { useEffect, useState, useMemo } from 'react';
 import {
   CalendarDays, CalendarRange, CalendarClock, PlayCircle, Clock,
-  Users, TrendingUp, TrendingDown, Wallet, AlertCircle, Activity
+  Users, TrendingUp, TrendingDown, Wallet, AlertCircle, Activity, PiggyBank
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
-import { Booking, Revenue, OperationalExpense, ActivityLog } from '@/lib/types';
+import { Booking, Revenue, OperationalExpense, ActivityLog, KasBulanan } from '@/lib/types';
 import { todayISO, getWeekStart, getWeekEnd, getMonthStart, getMonthEnd, formatCurrency, getDayName } from '@/lib/constants';
 import StatCard from '@/components/StatCard';
 import BarChart from '@/components/BarChart';
@@ -15,6 +15,7 @@ export default function DashboardPage() {
   const [revenue, setRevenue] = useState<Revenue[]>([]);
   const [expenses, setExpenses] = useState<OperationalExpense[]>([]);
   const [activities, setActivities] = useState<ActivityLog[]>([]);
+  const [kas, setKas] = useState<KasBulanan[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -23,16 +24,18 @@ export default function DashboardPage() {
 
   async function fetchAll() {
     setLoading(true);
-    const [b, r, e, a] = await Promise.all([
+    const [b, r, e, a, k] = await Promise.all([
       supabase.from('bookings').select('*'),
       supabase.from('revenue').select('*'),
       supabase.from('operational_expenses').select('*'),
       supabase.from('activity_log').select('*').order('created_at', { ascending: false }).limit(10),
+      supabase.from('kas_bulanan').select('*'),
     ]);
     if (b.data) setBookings(b.data as Booking[]);
     if (r.data) setRevenue(r.data as Revenue[]);
     if (e.data) setExpenses(e.data as OperationalExpense[]);
     if (a.data) setActivities(a.data as ActivityLog[]);
+    if (k.data) setKas(k.data as KasBulanan[]);
     setLoading(false);
   }
 
@@ -52,6 +55,9 @@ export default function DashboardPage() {
     const totalRevenue = revenue.reduce((s, r) => s + (r.total || 0), 0);
     const totalExpenses = expenses.reduce((s, e) => s + (e.amount || 0), 0);
     const netIncome = totalRevenue - totalExpenses;
+    const kasMasuk = kas.filter(k => k.type === 'Masuk').reduce((s, k) => s + k.amount, 0);
+    const kasKeluar = kas.filter(k => k.type === 'Keluar').reduce((s, k) => s + k.amount, 0);
+    const saldoKas = kasMasuk - kasKeluar;
     const uniqueUsers = new Set(bookings.map(b => b.user_id).filter(Boolean)).size;
 
     return {
@@ -64,8 +70,9 @@ export default function DashboardPage() {
       totalRevenue,
       totalExpenses,
       netIncome,
+      saldoKas,
     };
-  }, [bookings, revenue, expenses]);
+  }, [bookings, revenue, expenses, kas]);
 
   const alerts = useMemo(() => {
     const items: { text: string; icon: typeof AlertCircle }[] = [];
@@ -111,6 +118,7 @@ export default function DashboardPage() {
         <StatCard label="Total Pendapatan" value={formatCurrency(stats.totalRevenue)} icon={TrendingUp} color="green" />
         <StatCard label="Total Biaya Operasional" value={formatCurrency(stats.totalExpenses)} icon={TrendingDown} color="amber" />
         <StatCard label="Pendapatan Bersih" value={formatCurrency(stats.netIncome)} icon={Wallet} color={stats.netIncome >= 0 ? 'green' : 'red'} />
+        <StatCard label="Saldo Kas" value={formatCurrency(stats.saldoKas)} icon={PiggyBank} color={stats.saldoKas >= 0 ? 'teal' : 'red'} />
       </div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
